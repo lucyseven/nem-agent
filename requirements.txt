@@ -1,0 +1,29 @@
+# Streamlit UI
+streamlit==1.25.0  # Updated to a stable version
+altair==5.0.1  # Required for Streamlit visualizations
+
+# NLP and Retrieval-Augmented Generation
+langchain==0.1.6  # Updated for better compatibility
+openai==0.28.1
+pinecone-client==2.2.2  # or faiss-cpu for local vector storage
+
+# Vector Search
+faiss-cpu==1.7.4  # Local vector embedding retrieval
+sentence-transformers==2.2.2  # For generating text embeddings
+
+# PDF Processing
+pdfplumber==0.10.2  # Extracting text from PDFs
+
+# Web Automation (Agent Execution)
+playwright==1.37.0  # Automating website interactions
+selenium==4.9.1  # Alternative if needed
+
+# Utility Libraries
+numpy==1.24.0
+pandas==1.5.3
+pydantic==1.10.7  # Structured data validation
+python-dotenv==1.0.0  # For loading API keys from .env file
+tqdm==4.66.1  # Progress bar for embedding processing
+
+# Logging & Debugging
+loguru==0.7.0  # Structured logging
