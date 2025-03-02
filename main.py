@@ -4,6 +4,9 @@ from src.chatbot.conversation import ConversationManager
 from src.pdf_processing.pdf_extractor import extract_bill_data
 from src.agents.website_agent import execute_website_agent
 
+import os
+os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
+
 print("✅ Running the updated main.py!")
 
 # ---- Streamlit Page Config ----
