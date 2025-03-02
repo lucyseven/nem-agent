@@ -5,6 +5,19 @@ import numpy as np
 from typing import List
 from sentence_transformers import SentenceTransformer
 
+from dotenv import load_dotenv
+
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Retrieve the OpenAI API key from environment variables
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+# Use the OpenAI API key to initialize the OpenAI client
+openai.api_key = openai_api_key
+
 class RAGPipeline:
     """
     A minimal RAG pipeline that:

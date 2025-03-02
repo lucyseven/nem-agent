@@ -15,6 +15,9 @@ from src.utils.customer_database import fetch_customer_details
 
 
 
+import os
+os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
+
 print("✅ Running the updated main.py!")
 
 # ---- Streamlit Page Config ----
