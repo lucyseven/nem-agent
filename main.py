@@ -1,8 +1,19 @@
+import asyncio
 import streamlit as st
 from src.chatbot.rag import get_response
 from src.chatbot.conversation import ConversationManager
 from src.pdf_processing.pdf_extractor import extract_bill_data
 from src.agents.website_agent import execute_website_agent
+from src.utils.customer_database import fetch_customer_details
+
+
+
+# try:
+#     asyncio.get_running_loop()
+# except RuntimeError:
+#     asyncio.set_event_loop(asyncio.new_event_loop())
+
+
 
 print("✅ Running the updated main.py!")
 
@@ -48,7 +59,7 @@ st.markdown(
 )
 
 # ---- Center the Logo with Streamlit ----
-st.image("app/assets/sdcp_logo.jpg", width=200, caption="", use_container_width=False)
+st.image("app/assets/sdcp_logo.jpg", width=200, caption="", )
 
 # ---- Title ----
 st.title("🔹 NEM Agent")
@@ -98,7 +109,7 @@ def send_message():
     st.session_state.temp_user_input = ""
 
     # Rerun to refresh the UI
-    if hasattr(st, "experimental_rerun"):
+    if hasattr(st, "rerun"):
         st.experimental_rerun()
 
 # ---- Render existing conversation so far ----
@@ -106,23 +117,102 @@ display_chat_bubbles()
 
 # ---- Text Input with on_change callback (no Send button needed) ----
 st.text_input(
-    "Type your message...",
+    "Message:What do you have in mind?",  # Provide a valid label
     key="temp_user_input",
     on_change=send_message,
     placeholder="Type here and press Enter to send",
-    label_visibility="collapsed"
+    label_visibility="hidden"  # Instead of collapsed
 )
 
-# ---- Check if user wants to switch to annual billing ----
-# We'll read the last user message if it exists
+
+# # ---- Check if user wants to switch to annual billing ----
+# if "switch_to_annual_stage" not in st.session_state:
+#     st.session_state.switch_to_annual_stage = None  # Track confirmation state
+
+# if st.session_state.conversation.history:
+#     last_message = st.session_state.conversation.history[-1]["content"]
+    
+#     if "switch to annual" in last_message.lower():
+#         if st.session_state.switch_to_annual_stage is None:
+#             # Step 1: Show confirmation message with Yes/No buttons
+#             st.warning("⚠️ Please double-check if you want to switch to annual.")
+#             col1, col2 = st.columns(2)
+
+#             with col1:
+#                 if st.button("✅ Yes, switch to annual"):
+#                     st.session_state.switch_to_annual_stage = "ask_account"
+
+#             with col2:
+#                 if st.button("❌ No, go back to chat"):
+#                     st.session_state.switch_to_annual_stage = "cancel"
+
+#         elif st.session_state.switch_to_annual_stage == "ask_account":
+#             # Step 2: Ask for the user's account number
+#             account_number = st.text_input("Please enter your account number:")
+        
+#             if account_number:
+#                 customer_data = fetch_customer_details(account_number)  # ✅ Fetch details from backend
+            
+#                 if customer_data:  # ✅ Make sure the account exists
+#                     with st.spinner("Processing..."):
+#                         result = execute_website_agent(customer_data, account_number)  # ✅ Pass correct data
+#                         st.success(f"✅ Switched to Annual Billing for Account: {account_number}")
+#                         st.write(result)
+#                 else:
+#                     st.error("❌ Account number not found! Please try again.")
+
+#                 st.session_state.switch_to_annual_stage = None  # Reset the state
+
+#         elif st.session_state.switch_to_annual_stage == "cancel":
+#             st.info("❌ Action canceled. Returning to chat...")
+#             st.session_state.switch_to_annual_stage = None  # Reset state
+
+
+if "switch_to_annual_stage" not in st.session_state:
+    st.session_state.switch_to_annual_stage = None  # Track confirmation state
+
 if st.session_state.conversation.history:
     last_message = st.session_state.conversation.history[-1]["content"]
+
     if "switch to annual" in last_message.lower():
-        if st.button("⚡ Switch to Annual Billing"):
-            with st.spinner("Processing..."):
-                result = execute_website_agent()
-                st.success("✅ Switched to Annual Billing!")
-                st.write(result)
+        if st.session_state.switch_to_annual_stage is None:
+            # Step 1: Show confirmation message with Yes/No buttons
+            st.warning("⚠️ Please double-check if you want to switch to annual.")
+            col1, col2 = st.columns(2)
+
+            with col1:
+                if st.button("✅ Yes, switch to annual"):
+                    st.session_state.switch_to_annual_stage = "ask_account"
+                    st.experimental_rerun()  # ✅ Force UI update after first click
+
+            with col2:
+                if st.button("❌ No, go back to chat"):
+                    st.session_state.switch_to_annual_stage = "cancel"
+                    st.experimental_rerun()  # ✅ Force UI update after first click
+
+        elif st.session_state.switch_to_annual_stage == "ask_account":
+            # Step 2: Ask for the user's account number
+            account_number = st.text_input("Please enter your account number:")
+
+            if account_number:
+                customer_data = fetch_customer_details(account_number)  # ✅ Fetch details from backend
+
+                if customer_data:  # ✅ Make sure the account exists
+                    with st.spinner("Processing..."):
+                        result = execute_website_agent(customer_data, account_number)  # ✅ Pass correct data
+                        st.success(f"✅ Switched to Annual Billing for Account: {account_number}")
+                        st.write(result)
+                else:
+                    st.error("❌ Account number not found! Please try again.")
+
+                st.session_state.switch_to_annual_stage = None  # Reset the state
+                st.experimental_rerun()  # ✅ Ensure UI resets correctly after processing
+
+        elif st.session_state.switch_to_annual_stage == "cancel":
+            st.info("❌ Action canceled. Returning to chat...")
+            st.session_state.switch_to_annual_stage = None  # Reset state
+            st.experimental_rerun()  # ✅ Ensure UI resets correctly
+
 
 # ---- Upload Bill Section ----
 st.markdown("<h3>Upload your NEM Bill:</h3>", unsafe_allow_html=True)
