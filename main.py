@@ -203,18 +203,32 @@ if st.session_state.conversation.history:
                 if customer_data:  # ✅ Make sure the account exists
                     with st.spinner("Processing..."):
                         result = execute_website_agent(customer_data, account_number)  # ✅ Pass correct data
-                        st.success(f"✅ Switched to Annual Billing for Account: {account_number}")
-                        st.write(result)
+                        st.session_state.result_message = result  # Store result in session
+                        #st.session_state.pre_screenshot = pre_screenshot
+                        #st.session_state.post_screenshot = post_screenshot
+                        st.session_state.switch_to_annual_stage = "completed"  # ✅ Change state to keep message visible
+                        st.experimental_rerun()
+
                 else:
                     st.error("❌ Account number not found! Please try again.")
 
-                st.session_state.switch_to_annual_stage = None  # Reset the state
-                st.experimental_rerun()  # ✅ Ensure UI resets correctly after processing
+        elif st.session_state.switch_to_annual_stage == "completed":
+            # ✅ Show the final success message and screenshots
+            st.success(st.session_state.result_message)
+            #st.image(st.session_state.pre_screenshot, caption="Pre-Submission Screenshot")
+            #st.image(st.session_state.post_screenshot, caption="Post-Submission Screenshot")
 
-        elif st.session_state.switch_to_annual_stage == "cancel":
-            st.info("❌ Action canceled. Returning to chat...")
-            st.session_state.switch_to_annual_stage = None  # Reset state
-            st.experimental_rerun()  # ✅ Ensure UI resets correctly
+            # ✅ Button to return to chat
+            if st.button("⬅ Go back to chat"):
+                st.session_state.switch_to_annual_stage = None  # Reset state
+                st.experimental_rerun()
+
+            elif st.session_state.switch_to_annual_stage == "cancel":
+                st.session_state.switch_to_annual_stage = None  # Reset state
+                st.session_state.conversation.history.append({"role": "assistant", "content": "Okay! Returning to chat mode. Feel free to ask anything else."})
+                st.experimental_rerun()  # ✅ Ensure it fully resets back to chat UI
+
+
 
 
 # ---- Upload Bill Section ----
