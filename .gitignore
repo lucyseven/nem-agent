@@ -1,5 +1,7 @@
 # Ignore virtual environment
 venv/
+neb/
+nebenv/
 
 # Ignore compiled Python files
 __pycache__/
