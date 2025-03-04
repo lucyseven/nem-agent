@@ -6,6 +6,11 @@ from src.pdf_processing.pdf_extractor import extract_bill_data
 from src.agents.website_agent import execute_website_agent
 from src.utils.customer_database import fetch_customer_details
 
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 # try:
