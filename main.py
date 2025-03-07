@@ -177,66 +177,9 @@ def send_message():
 #             st.session_state.switch_to_annual_stage = None  # Reset state
 
 
+# Initialize switch_to_annual_stage in session state
 if "switch_to_annual_stage" not in st.session_state:
     st.session_state.switch_to_annual_stage = None  # Track confirmation state
-
-# Always display chat history first
-if st.session_state.conversation.history:
-    display_chat_bubbles()
-
-# Then handle the switch to annual flow
-if st.session_state.conversation.history:
-    last_message = st.session_state.conversation.history[-1]["content"]
-
-    if "switch to annual" in last_message.lower():
-        if st.session_state.switch_to_annual_stage is None:
-            # Step 1: Show confirmation message with Yes/No buttons
-            st.warning("⚠️ Please double-check if you want to switch to annual.")
-            col1, col2 = st.columns(2)
-
-            with col1:
-                if st.button("✅ Yes, switch to annual"):
-                    st.session_state.switch_to_annual_stage = "ask_account"
-                    st.experimental_rerun()  # ✅ Force UI update after first click
-
-            with col2:
-                if st.button("❌ No, go back to chat"):
-                    st.session_state.switch_to_annual_stage = "cancel"
-                    st.experimental_rerun()  # ✅ Force UI update after first click
-
-        elif st.session_state.switch_to_annual_stage == "ask_account":
-            # Step 2: Ask for the user's account number
-            account_number = st.text_input("Please enter your account number:")
-
-            if account_number:
-                customer_data = fetch_customer_details(account_number)  # ✅ Fetch details from backend
-
-                if customer_data:  # ✅ Make sure the account exists
-                    with st.spinner("Processing..."):
-                        result = execute_website_agent(customer_data, account_number)  # ✅ Pass correct data
-                        st.session_state.result_message = result  # Store result in session
-                        st.session_state.switch_to_annual_stage = "completed"  # ✅ Change state to keep message visible
-                        st.experimental_rerun()
-
-                else:
-                    st.error("❌ Account number not found! Please try again.")
-
-        elif st.session_state.switch_to_annual_stage == "completed":
-            # ✅ Show the final success message and screenshots
-            st.success(st.session_state.result_message)
-
-            # ✅ Button to return to chat
-            if st.button("⬅ Go back to chat"):
-                st.session_state.switch_to_annual_stage = None  # Reset state
-                st.experimental_rerun()
-
-        elif st.session_state.switch_to_annual_stage == "cancel":
-            st.session_state.switch_to_annual_stage = None  # Reset state
-            st.session_state.conversation.history.append({"role": "assistant", "content": "Okay! Returning to chat mode. Feel free to ask anything else."})
-            st.experimental_rerun()  # ✅ Ensure it fully resets back to chat UI
-
-
-
 
 # Add this to your sidebar navigation
 with st.sidebar:
@@ -248,18 +191,85 @@ with st.sidebar:
 
 # In the main content area
 if page == "Chat":
+    # Reset switch_to_annual_stage when coming back to chat page if needed
+    if "previous_page" in st.session_state and st.session_state.previous_page != "Chat":
+        # Only reset if we're coming from a different page
+        st.session_state.switch_to_annual_stage = None
+    
+    # Store current page for next navigation
+    st.session_state.previous_page = "Chat"
+    
     # Create two columns with more space for chat (3:1 ratio)
     chat_col, bill_col = st.columns([3, 1])
     
     with chat_col:
-        # Text input for chat (directly below chat history)
-        st.text_input(
-            "Message:What do you have in mind?",
-            key="temp_user_input",
-            on_change=send_message,
-            placeholder="Type here and press Enter to send",
-            label_visibility="hidden"
-        )
+        # Display chat history
+        if st.session_state.conversation.history:
+            display_chat_bubbles()
+        
+        # Check for "switch to annual" flow - improved detection
+        if st.session_state.conversation.history:
+            last_message = st.session_state.conversation.history[-1]["content"].lower()
+            
+            # More robust detection of switch to annual request
+            switch_phrases = ["switch to annual", "annual billing", "switch billing", "true-up"]
+            is_switch_request = any(phrase in last_message for phrase in switch_phrases)
+            
+            if is_switch_request:
+                if st.session_state.switch_to_annual_stage is None:
+                    # Step 1: Show confirmation message with Yes/No buttons
+                    st.warning("⚠️ Please double-check if you want to switch to annual.")
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        if st.button("✅ Yes, switch to annual", key="yes_switch_annual"):
+                            st.session_state.switch_to_annual_stage = "ask_account"
+                            st.experimental_rerun()  # Force UI update after first click
+
+                    with col2:
+                        if st.button("❌ No, go back to chat", key="no_switch_annual"):
+                            st.session_state.switch_to_annual_stage = "cancel"
+                            st.experimental_rerun()  # Force UI update after first click
+
+                elif st.session_state.switch_to_annual_stage == "ask_account":
+                    # Step 2: Ask for the user's account number
+                    account_number = st.text_input("Please enter your account number:", key="account_number_input")
+
+                    if account_number:
+                        customer_data = fetch_customer_details(account_number)  # Fetch details from backend
+
+                        if customer_data:  # Make sure the account exists
+                            with st.spinner("Processing..."):
+                                result = execute_website_agent(customer_data, account_number)  # Pass correct data
+                                st.session_state.result_message = result  # Store result in session
+                                st.session_state.switch_to_annual_stage = "completed"  # Change state to keep message visible
+                                st.experimental_rerun()
+                        else:
+                            st.error("❌ Account number not found! Please try again.")
+
+                elif st.session_state.switch_to_annual_stage == "completed":
+                    # Show the final success message and screenshots
+                    st.success(st.session_state.result_message)
+
+                    # Button to return to chat
+                    if st.button("⬅ Go back to chat", key="return_to_chat"):
+                        st.session_state.switch_to_annual_stage = None  # Reset state
+                        st.experimental_rerun()
+
+                elif st.session_state.switch_to_annual_stage == "cancel":
+                    st.session_state.switch_to_annual_stage = None  # Reset state
+                    st.session_state.conversation.history.append({"role": "assistant", "content": "Okay! Returning to chat mode. Feel free to ask anything else."})
+                    st.experimental_rerun()  # Ensure it fully resets back to chat UI
+        
+        # Text input for chat (only show if not in switch_to_annual flow)
+        if st.session_state.switch_to_annual_stage is None:
+            st.text_input(
+                "Message:",
+                key="temp_user_input",
+                on_change=send_message,
+                placeholder="Type here and press Enter to send",
+                label_visibility="hidden"
+            )
     
     with bill_col:
         # Add some vertical space before the upload section
@@ -308,5 +318,8 @@ if page == "Chat":
         display_bill_data(st.session_state.extracted_bill_data)
                 
 elif page == "Yearly Bill Query":
+    # Store current page for next navigation
+    st.session_state.previous_page = "Yearly Bill Query"
+    
     # Call the bill query page function
     bill_query_page()
