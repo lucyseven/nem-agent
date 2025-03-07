@@ -56,10 +56,10 @@ def display_bill_data(bill_data: dict):
             unit = charge.get("unit", "$")
             
             # Format the amount with the unit
-            if unit == "$":
+            if unit == "$" and not amount.endswith("kWh"):
                 formatted_amount = f"${amount}"
             else:
-                formatted_amount = f"{amount} {unit}"
+                formatted_amount = f"{amount}"
             
             charge_data.append({
                 "Charge Type": charge_type,

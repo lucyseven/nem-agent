@@ -7,9 +7,11 @@ from src.agents.website_agent import execute_website_agent
 from src.utils.customer_database import fetch_customer_details
 from src.pdf_processing.bill_visualizer import visualize_bill_data, get_monthly_comparison_chart
 from src.pdf_processing.bill_display import display_bill_data
+from app.pages.bill_query import bill_query_page
 
 from dotenv import load_dotenv
 import os
+import pandas as pd
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,7 +30,7 @@ os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
 print("✅ Running the updated main.py!")
 
 # ---- Streamlit Page Config ----
-st.set_page_config(page_title="NEM Agent", layout="centered")
+st.set_page_config(page_title="NEM Agent", layout="wide")
 
 # ---- Inject Custom CSS for Chat Bubbles ----
 st.markdown(
@@ -122,17 +124,14 @@ def send_message():
     if hasattr(st, "rerun"):
         st.experimental_rerun()
 
-# ---- Render existing conversation so far ----
-display_chat_bubbles()
-
 # ---- Text Input with on_change callback (no Send button needed) ----
-st.text_input(
-    "Message:What do you have in mind?",  # Provide a valid label
-    key="temp_user_input",
-    on_change=send_message,
-    placeholder="Type here and press Enter to send",
-    label_visibility="hidden"  # Instead of collapsed
-)
+# st.text_input(
+#     "Message:What do you have in mind?",  # Provide a valid label
+#     key="temp_user_input",
+#     on_change=send_message,
+#     placeholder="Type here and press Enter to send",
+#     label_visibility="hidden"  # Instead of collapsed
+# )
 
 
 # # ---- Check if user wants to switch to annual billing ----
@@ -181,6 +180,11 @@ st.text_input(
 if "switch_to_annual_stage" not in st.session_state:
     st.session_state.switch_to_annual_stage = None  # Track confirmation state
 
+# Always display chat history first
+if st.session_state.conversation.history:
+    display_chat_bubbles()
+
+# Then handle the switch to annual flow
 if st.session_state.conversation.history:
     last_message = st.session_state.conversation.history[-1]["content"]
 
@@ -211,8 +215,6 @@ if st.session_state.conversation.history:
                     with st.spinner("Processing..."):
                         result = execute_website_agent(customer_data, account_number)  # ✅ Pass correct data
                         st.session_state.result_message = result  # Store result in session
-                        #st.session_state.pre_screenshot = pre_screenshot
-                        #st.session_state.post_screenshot = post_screenshot
                         st.session_state.switch_to_annual_stage = "completed"  # ✅ Change state to keep message visible
                         st.experimental_rerun()
 
@@ -222,43 +224,89 @@ if st.session_state.conversation.history:
         elif st.session_state.switch_to_annual_stage == "completed":
             # ✅ Show the final success message and screenshots
             st.success(st.session_state.result_message)
-            #st.image(st.session_state.pre_screenshot, caption="Pre-Submission Screenshot")
-            #st.image(st.session_state.post_screenshot, caption="Post-Submission Screenshot")
 
             # ✅ Button to return to chat
             if st.button("⬅ Go back to chat"):
                 st.session_state.switch_to_annual_stage = None  # Reset state
                 st.experimental_rerun()
 
-            elif st.session_state.switch_to_annual_stage == "cancel":
-                st.session_state.switch_to_annual_stage = None  # Reset state
-                st.session_state.conversation.history.append({"role": "assistant", "content": "Okay! Returning to chat mode. Feel free to ask anything else."})
-                st.experimental_rerun()  # ✅ Ensure it fully resets back to chat UI
+        elif st.session_state.switch_to_annual_stage == "cancel":
+            st.session_state.switch_to_annual_stage = None  # Reset state
+            st.session_state.conversation.history.append({"role": "assistant", "content": "Okay! Returning to chat mode. Feel free to ask anything else."})
+            st.experimental_rerun()  # ✅ Ensure it fully resets back to chat UI
 
 
 
 
-# ---- Upload Bill Section ----
-st.markdown("<h3>📄 Upload your NEM Bill:</h3>", unsafe_allow_html=True)
-uploaded_file = st.file_uploader("", type=["pdf"])
+# Add this to your sidebar navigation
+with st.sidebar:
+    st.title("Navigation")
+    page = st.radio(
+        "Select a page:",
+        ["Chat", "Yearly Bill Query"]  # Removed "Bill Analysis"
+    )
 
-if uploaded_file:
-    with st.spinner("Extracting data from your bill..."):
-        extracted_data = extract_bill_data(uploaded_file)
+# In the main content area
+if page == "Chat":
+    # Create two columns with more space for chat (3:1 ratio)
+    chat_col, bill_col = st.columns([3, 1])
+    
+    with chat_col:
+        # Text input for chat (directly below chat history)
+        st.text_input(
+            "Message:What do you have in mind?",
+            key="temp_user_input",
+            on_change=send_message,
+            placeholder="Type here and press Enter to send",
+            label_visibility="hidden"
+        )
+    
+    with bill_col:
+        # Add some vertical space before the upload section
+        st.write("")
+        st.write("")
         
-        # Display the bill data
-        display_bill_data(extracted_data)
+        # ---- Upload Bill Section ----
+        st.markdown("<h3>📄 Upload your NEM Bill:</h3>", unsafe_allow_html=True)
         
-        # Add the bill data to the conversation context
-        if 'error' not in extracted_data:
-            summary = extracted_data.get('bill_summary', {})
-            bill_info = (
-                f"I've uploaded a bill with "
-                f"total amount ${summary.get('total_amount_due', 'unknown')}."
-            )
-            st.session_state.conversation.add_message("user", bill_info)
-            
-            # Get assistant response about the bill
-            conversation_history = st.session_state.conversation.get_formatted_history()
-            answer = get_response(conversation_history)
-            st.session_state.conversation.add_message("assistant", answer)
+        # Track if we've already processed this file and its data
+        if "processed_file" not in st.session_state:
+            st.session_state.processed_file = None
+        if "extracted_bill_data" not in st.session_state:
+            st.session_state.extracted_bill_data = None
+        
+        uploaded_file = st.file_uploader("", type=["pdf"])
+
+        # Process new uploads
+        if uploaded_file and uploaded_file != st.session_state.processed_file:
+            with st.spinner("Extracting data from your bill..."):
+                extracted_data = extract_bill_data(uploaded_file)
+                st.session_state.extracted_bill_data = extracted_data
+                
+                # Add the bill data to the conversation context
+                if 'error' not in extracted_data:
+                    summary = extracted_data.get('bill_summary', {})
+                    bill_info = (
+                        f"I've uploaded a bill with "
+                        f"total amount ${summary.get('total_amount_due', 'unknown')}."
+                    )
+                    st.session_state.conversation.add_message("user", bill_info)
+                    
+                    # Get assistant response about the bill
+                    conversation_history = st.session_state.conversation.get_formatted_history()
+                    answer = get_response(conversation_history)
+                    st.session_state.conversation.add_message("assistant", answer)
+                    
+                    # Mark this file as processed
+                    st.session_state.processed_file = uploaded_file
+                    
+                    # Trigger a rerun to update the chat display
+                    st.experimental_rerun()
+    
+    # Always display bill data if it exists (even after reruns)
+    if st.session_state.extracted_bill_data is not None:
+        display_bill_data(st.session_state.extracted_bill_data)
+                
+elif page == "Yearly Bill Query":
+    # Call the bill query page function
+    bill_query_page()

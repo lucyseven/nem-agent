@@ -16,7 +16,7 @@ This chatbot is designed to help you:
 
 <p style="font-family: 'Arial', sans-serif; font-size: 16px;">
   <strong>🗣️ Interactive Chat:</strong><br>
-  Engage in natural conversation about your NEM bill. Ask questions like “What is NEM?” and receive personalized, plain language responses.
+  Engage in natural conversation about your NEM bill. Ask questions like "What is NEM?" and receive personalized, plain language responses.
 </p>
 
 <p style="font-family: 'Arial', sans-serif; font-size: 16px;">
@@ -28,4 +28,20 @@ This chatbot is designed to help you:
   <strong>🔄 Billing Mode Switch:</strong><br>
   <strong>Monthly Mode:</strong> View detailed information for the current billing period.<br>
   <strong>Annual Mode:</strong> Switch to an annual billing view that includes cumulative usage, credits, and the true-up process, providing a complete picture of your energy management.
+</p>
+
+<h2 style="font-family: 'Courier New', monospace; font-size: 20px;">📚 Knowledge Sources</h2>
+
+<p style="font-family: 'Arial', sans-serif; font-size: 16px;">
+  The chatbot uses Retrieval-Augmented Generation (RAG) with the following document sources:
+</p>
+
+<ul style="font-family: 'Arial', sans-serif; font-size: 16px;">
+  <li><strong>FAQ Document:</strong> Comprehensive answers to the top 20 frequently asked questions about Net Energy Metering</li>
+  <li><strong>NEM Policy Document:</strong> Official policy information and guidelines about Net Energy Metering</li>
+  <li><strong>Website Scraped Data:</strong> Up-to-date information collected from relevant utility websites about NEM programs</li>
+</ul>
+
+<p style="font-family: 'Arial', sans-serif; font-size: 16px;">
+  These documents are processed using advanced natural language processing techniques to provide accurate and relevant responses to your queries.
 </p>
