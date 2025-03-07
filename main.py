@@ -5,6 +5,8 @@ from src.chatbot.conversation import ConversationManager
 from src.pdf_processing.pdf_extractor import extract_bill_data
 from src.agents.website_agent import execute_website_agent
 from src.utils.customer_database import fetch_customer_details
+from src.pdf_processing.bill_visualizer import visualize_bill_data, get_monthly_comparison_chart
+from src.pdf_processing.bill_display import display_bill_data
 
 from dotenv import load_dotenv
 import os
@@ -82,7 +84,7 @@ st.markdown(
 if "conversation" not in st.session_state:
     st.session_state.conversation = ConversationManager()
 
-# We store the user’s typed text in "temp_user_input"
+# We store the user's typed text in "temp_user_input"
 # so we can reset it after sending without conflicting with the widget.
 if "temp_user_input" not in st.session_state:
     st.session_state.temp_user_input = ""
@@ -237,9 +239,26 @@ if st.session_state.conversation.history:
 
 
 # ---- Upload Bill Section ----
-st.markdown("<h3>Upload your NEM Bill:</h3>", unsafe_allow_html=True)
+st.markdown("<h3>📄 Upload your NEM Bill:</h3>", unsafe_allow_html=True)
 uploaded_file = st.file_uploader("", type=["pdf"])
+
 if uploaded_file:
-    with st.spinner("Extracting data..."):
+    with st.spinner("Extracting data from your bill..."):
         extracted_data = extract_bill_data(uploaded_file)
-    st.json(extracted_data)
+        
+        # Display the bill data
+        display_bill_data(extracted_data)
+        
+        # Add the bill data to the conversation context
+        if 'error' not in extracted_data:
+            summary = extracted_data.get('bill_summary', {})
+            bill_info = (
+                f"I've uploaded a bill with "
+                f"total amount ${summary.get('total_amount_due', 'unknown')}."
+            )
+            st.session_state.conversation.add_message("user", bill_info)
+            
+            # Get assistant response about the bill
+            conversation_history = st.session_state.conversation.get_formatted_history()
+            answer = get_response(conversation_history)
+            st.session_state.conversation.add_message("assistant", answer)
