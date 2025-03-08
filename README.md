@@ -1,4 +1,4 @@
-# ⚡ NEM Bill Explainer Chatbot ⚡
+# ⚡ NEM Bill Explainer: Agentic RAG Chatbot ⚡
 
 <p style="font-family: 'Courier New', monospace; font-size: 18px;">
   A conversational agent that helps you understand your Net Energy Metering (NEM) bills by chatting about billing details, reading PDF bills, and offering flexible billing views.
@@ -11,6 +11,18 @@ This chatbot is designed to help you:
 - **Chat about NEM Bills:** Ask questions and get clear explanations about your energy usage and charges.
 - **Read PDF Bills:** Automatically extract key billing information from uploaded PDF bills.
 - **Switch Billing Modes:** Toggle between a detailed monthly breakdown and an annual billing view—including the true-up process.
+## 🤖 Agent Functions
+
+This project also functions as an agent with the following capabilities:
+
+- **Website Automation Agent:** Automates the filling out of the Annual True-Up Application form on utility websites.
+- **PDF Processing Agent:** Extracts structured data from PDF bills using advanced AI models.
+- **Conversation Management Agent:** Maintains conversation context and history for a seamless user experience.
+- **Data Visualization Agent:** Generates interactive charts and graphs to visualize energy usage and billing data.
+- **Utility-Specific Parsing Agent:** Parses utility bills using custom patterns for different companies.
+
+<img src="screenshots/agentic_RAG.png" alt="Agentic RAG Chatbot" style="width: 80%; height: auto;">
+
 
 <h2 style="font-family: 'Courier New', monospace; font-size: 20px;">🔍 Key Features</h2>
 
@@ -63,7 +75,7 @@ This chatbot is designed to help you:
 <p style="font-family: 'Arial', sans-serif; font-size: 16px;">
   The NEM Bill Explainer uses a Retrieval-Augmented Generation (RAG) pipeline that:
 </p>
-
+<img src="screenshots/RAG_pipeline.png" alt="Agentic RAG Chatbot" style="width: 80%; height: auto;">
 <ol style="font-family: 'Arial', sans-serif; font-size: 16px;">
   <li><strong>Processes Documents:</strong> Loads and chunks documents into manageable pieces (300 words with 50-word overlap)</li>
   <li><strong>Generates Embeddings:</strong> Creates vector representations of document chunks using SentenceTransformers locally</li>
