@@ -71,7 +71,7 @@ st.markdown(
 )
 
 # ---- Center the Logo with Streamlit ----
-st.image("app/assets/sdcp_logo.jpg", width=200, caption="", )
+# st.image("app/assets/sdcp_logo.jpg", width=200, caption="", )
 
 # ---- Title ----
 st.title("🔹 NEM Agent")
