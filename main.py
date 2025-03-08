@@ -5,6 +5,7 @@ from src.chatbot.conversation import ConversationManager
 from src.pdf_processing.pdf_extractor import extract_bill_data
 from src.agents.website_agent import execute_website_agent
 from src.utils.customer_database import fetch_customer_details
+from app.pages.upload_bill import extract_bill_data
 
 
 
@@ -128,48 +129,6 @@ st.text_input(
 )
 
 
-# # ---- Check if user wants to switch to annual billing ----
-# if "switch_to_annual_stage" not in st.session_state:
-#     st.session_state.switch_to_annual_stage = None  # Track confirmation state
-
-# if st.session_state.conversation.history:
-#     last_message = st.session_state.conversation.history[-1]["content"]
-    
-#     if "switch to annual" in last_message.lower():
-#         if st.session_state.switch_to_annual_stage is None:
-#             # Step 1: Show confirmation message with Yes/No buttons
-#             st.warning("⚠️ Please double-check if you want to switch to annual.")
-#             col1, col2 = st.columns(2)
-
-#             with col1:
-#                 if st.button("✅ Yes, switch to annual"):
-#                     st.session_state.switch_to_annual_stage = "ask_account"
-
-#             with col2:
-#                 if st.button("❌ No, go back to chat"):
-#                     st.session_state.switch_to_annual_stage = "cancel"
-
-#         elif st.session_state.switch_to_annual_stage == "ask_account":
-#             # Step 2: Ask for the user's account number
-#             account_number = st.text_input("Please enter your account number:")
-        
-#             if account_number:
-#                 customer_data = fetch_customer_details(account_number)  # ✅ Fetch details from backend
-            
-#                 if customer_data:  # ✅ Make sure the account exists
-#                     with st.spinner("Processing..."):
-#                         result = execute_website_agent(customer_data, account_number)  # ✅ Pass correct data
-#                         st.success(f"✅ Switched to Annual Billing for Account: {account_number}")
-#                         st.write(result)
-#                 else:
-#                     st.error("❌ Account number not found! Please try again.")
-
-#                 st.session_state.switch_to_annual_stage = None  # Reset the state
-
-#         elif st.session_state.switch_to_annual_stage == "cancel":
-#             st.info("❌ Action canceled. Returning to chat...")
-#             st.session_state.switch_to_annual_stage = None  # Reset state
-
 
 if "switch_to_annual_stage" not in st.session_state:
     st.session_state.switch_to_annual_stage = None  # Track confirmation state
@@ -231,10 +190,14 @@ if st.session_state.conversation.history:
 
 
 
+
+
 # ---- Upload Bill Section ----
 st.markdown("<h3>Upload your NEM Bill:</h3>", unsafe_allow_html=True)
 uploaded_file = st.file_uploader("", type=["pdf"])
+
 if uploaded_file:
     with st.spinner("Extracting data..."):
-        extracted_data = extract_bill_data(uploaded_file)
+        extracted_data = extract_bill_data(uploaded_file)  # Call the function from upload_bill.py
     st.json(extracted_data)
+
