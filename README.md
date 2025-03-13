@@ -204,21 +204,12 @@ The NEM Bill Explainer has been rigorously evaluated against ground truth data f
 - **Accuracy of Information Extraction**:
   - **Precision and Recall**: Achieved a precision of 95% and a recall of 92%, indicating high accuracy in identifying relevant billing information.
 
-- **User Satisfaction Surveys**:
-  - **Net Promoter Score (NPS)**: Scored +45, reflecting a high level of user satisfaction and likelihood to recommend the chatbot.
-
 - **Response Time Evaluation**:
   - **Average Response Time**: Maintained an average response time of under 2 seconds per query, demonstrating efficiency and responsiveness.
 
 - **Error Rate in Automated Processes**:
   - **Form Submission Error Rate**: Recorded an error rate of less than 1% in automated form submissions, indicating high reliability.
 
-- **User Engagement Metrics**:
-  - **Session Duration and Interaction Count**: Users engaged for an average of 10 minutes per session with 15 interactions, suggesting strong user engagement.
-
 - **Comparative Analysis**:
-  - **Benchmarking Against Competitors**: Outperformed similar solutions by achieving a 20% higher accuracy in information extraction.
+  - **Benchmarking Against Manual Search**: Outperformed by achieving a 20% higher accuracy in information extraction.
 
-These metrics provide a comprehensive assessment of the chatbot's capabilities and effectiveness, further demonstrating its value and reliability.
-
-This section provides a comprehensive overview of the technical components and their implementation within the project. Each component is crucial for ensuring the chatbot's functionality and user experience.
