@@ -9,8 +9,28 @@
 This chatbot is designed to help you:
 
 - **Chat about NEM Bills:** Ask questions and get clear explanations about your energy usage and charges.
+
+<div style="text-align: center;">
+    <img src="/Users/junjiezhang/Documents/GitHub/nem-agent/screenshots/bill%20talk%20snapshot.jpg" alt="Bill Talk Snapshot" style="width: 50%;">
+</div>
+
+- **View Bill Snapshots:** Get quick visual summaries and insights about your energy consumption patterns.
+
+<div style="text-align: center;">
+    <img src="/Users/junjiezhang/Documents/GitHub/nem-agent/screenshots/month vs yearly bill analysis.jpg" alt="Bill Talk Snapshot" style="width: 50%;">
+</div>
+
 - **Read PDF Bills:** Automatically extract key billing information from uploaded PDF bills.
+
+<div style="text-align: center;">
+    <img src="/Users/junjiezhang/Documents/GitHub/nem-agent/screenshots/bill breakdown.jpg" alt="Bill Talk Snapshot" style="width: 50%;">
+</div>
+
 - **Switch Billing Modes:** Toggle between a detailed monthly breakdown and an annual billing view—including the true-up process.
+
+
+
+
 ## 🤖 Agent Functions
 
 This project also functions as an agent with the following capabilities:
@@ -212,4 +232,6 @@ The NEM Bill Explainer has been rigorously evaluated against ground truth data f
 
 - **Comparative Analysis**:
   - **Benchmarking Against Manual Search**: Outperformed by achieving a 20% higher accuracy in information extraction.
+
+
 
