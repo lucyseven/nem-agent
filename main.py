@@ -5,7 +5,7 @@ from src.chatbot.conversation import ConversationManager
 from src.pdf_processing.pdf_extractor import extract_bill_data
 from src.agents.website_agent import execute_website_agent
 from src.utils.customer_database import fetch_customer_details
-from src.pdf_processing.bill_visualizer import visualize_bill_data
+from src.pdf_processing.bill_visualizer import visualize_bill_data, get_monthly_comparison_chart
 from src.pdf_processing.bill_display import display_bill_data
 from app.pages.bill_query import bill_query_page
 
@@ -15,8 +15,6 @@ import pandas as pd
 
 # Load environment variables from .env file
 load_dotenv()
-from app.pages.upload_bill import extract_bill_data
-
 
 
 # try:
@@ -136,6 +134,48 @@ def send_message():
 # )
 
 
+# # ---- Check if user wants to switch to annual billing ----
+# if "switch_to_annual_stage" not in st.session_state:
+#     st.session_state.switch_to_annual_stage = None  # Track confirmation state
+
+# if st.session_state.conversation.history:
+#     last_message = st.session_state.conversation.history[-1]["content"]
+    
+#     if "switch to annual" in last_message.lower():
+#         if st.session_state.switch_to_annual_stage is None:
+#             # Step 1: Show confirmation message with Yes/No buttons
+#             st.warning("⚠️ Please double-check if you want to switch to annual.")
+#             col1, col2 = st.columns(2)
+
+#             with col1:
+#                 if st.button("✅ Yes, switch to annual"):
+#                     st.session_state.switch_to_annual_stage = "ask_account"
+
+#             with col2:
+#                 if st.button("❌ No, go back to chat"):
+#                     st.session_state.switch_to_annual_stage = "cancel"
+
+#         elif st.session_state.switch_to_annual_stage == "ask_account":
+#             # Step 2: Ask for the user's account number
+#             account_number = st.text_input("Please enter your account number:")
+        
+#             if account_number:
+#                 customer_data = fetch_customer_details(account_number)  # ✅ Fetch details from backend
+            
+#                 if customer_data:  # ✅ Make sure the account exists
+#                     with st.spinner("Processing..."):
+#                         result = execute_website_agent(customer_data, account_number)  # ✅ Pass correct data
+#                         st.success(f"✅ Switched to Annual Billing for Account: {account_number}")
+#                         st.write(result)
+#                 else:
+#                     st.error("❌ Account number not found! Please try again.")
+
+#                 st.session_state.switch_to_annual_stage = None  # Reset the state
+
+#         elif st.session_state.switch_to_annual_stage == "cancel":
+#             st.info("❌ Action canceled. Returning to chat...")
+#             st.session_state.switch_to_annual_stage = None  # Reset state
+
 
 # Initialize switch_to_annual_stage in session state
 if "switch_to_annual_stage" not in st.session_state:
@@ -216,18 +256,70 @@ if page == "Chat":
                         st.session_state.switch_to_annual_stage = None  # Reset state
                         st.experimental_rerun()
 
-            elif st.session_state.switch_to_annual_stage == "cancel":
-                st.session_state.switch_to_annual_stage = None  # Reset state
-                st.session_state.conversation.history.append({"role": "assistant", "content": "Okay! Returning to chat mode. Feel free to ask anything else."})
-                st.experimental_rerun()  # ✅ Ensure it fully resets back to chat UI
+                elif st.session_state.switch_to_annual_stage == "cancel":
+                    st.session_state.switch_to_annual_stage = None  # Reset state
+                    st.session_state.conversation.history.append({"role": "assistant", "content": "Okay! Returning to chat mode. Feel free to ask anything else."})
+                    st.experimental_rerun()  # Ensure it fully resets back to chat UI
+        
+        # Text input for chat (only show if not in switch_to_annual flow)
+        if st.session_state.switch_to_annual_stage is None:
+            st.text_input(
+                "Message:",
+                key="temp_user_input",
+                on_change=send_message,
+                placeholder="Type here and press Enter to send",
+                label_visibility="hidden"
+            )
+    
+    with bill_col:
+        # Add some vertical space before the upload section
+        st.write("")
+        st.write("")
+        
+        # ---- Upload Bill Section ----
+        st.markdown("<h3>📄 Upload your NEM Bill:</h3>", unsafe_allow_html=True)
+        
+        # Track if we've already processed this file and its data
+        if "processed_file" not in st.session_state:
+            st.session_state.processed_file = None
+        if "extracted_bill_data" not in st.session_state:
+            st.session_state.extracted_bill_data = None
+        
+        uploaded_file = st.file_uploader("", type=["pdf"])
 
-
-
-
-# ---- Upload Bill Section ----
-st.markdown("<h3>Upload your NEM Bill:</h3>", unsafe_allow_html=True)
-uploaded_file = st.file_uploader("", type=["pdf"])
-if uploaded_file:
-    with st.spinner("Extracting data..."):
-        extracted_data = extract_bill_data(uploaded_file)
-    st.json(extracted_data)
+        # Process new uploads
+        if uploaded_file and uploaded_file != st.session_state.processed_file:
+            with st.spinner("Extracting data from your bill..."):
+                extracted_data = extract_bill_data(uploaded_file)
+                st.session_state.extracted_bill_data = extracted_data
+                
+                # Add the bill data to the conversation context
+                if 'error' not in extracted_data:
+                    summary = extracted_data.get('bill_summary', {})
+                    bill_info = (
+                        f"I've uploaded a bill with "
+                        f"total amount ${summary.get('total_amount_due', 'unknown')}."
+                    )
+                    st.session_state.conversation.add_message("user", bill_info)
+                    
+                    # Get assistant response about the bill
+                    conversation_history = st.session_state.conversation.get_formatted_history()
+                    answer = get_response(conversation_history)
+                    st.session_state.conversation.add_message("assistant", answer)
+                    
+                    # Mark this file as processed
+                    st.session_state.processed_file = uploaded_file
+                    
+                    # Trigger a rerun to update the chat display
+                    st.experimental_rerun()
+    
+    # Always display bill data if it exists (even after reruns)
+    if st.session_state.extracted_bill_data is not None:
+        display_bill_data(st.session_state.extracted_bill_data)
+                
+elif page == "Yearly Bill Query":
+    # Store current page for next navigation
+    st.session_state.previous_page = "Yearly Bill Query"
+    
+    # Call the bill query page function
+    bill_query_page()
