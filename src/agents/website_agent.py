@@ -126,15 +126,15 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.edge.service import Service
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import os
 
-# 🔹 Correct Edge WebDriver path
-edge_driver_path = r"C:\WebDrivers\msedgedriver.exe"
-service = Service(edge_driver_path)
+# 🔹 Correct Chrome WebDriver path for Mac M1
+chrome_driver_path = "/opt/homebrew/bin/chromedriver"
+service = Service(chrome_driver_path)
 
 def slow_type(element, text, delay=0.1):
     """Types text one character at a time with a small delay."""
@@ -149,8 +149,8 @@ def execute_website_agent(customer_data, account_number):
     screenshots_folder = "screenshots"
     os.makedirs(screenshots_folder, exist_ok=True)  # Create folder if it doesn't exist
 
-    # Start Edge browser
-    driver = webdriver.Edge(service=service)
+    # Start chrome browser
+    driver = webdriver.Chrome(service=service)
     driver.maximize_window()
 
     # Open the website
