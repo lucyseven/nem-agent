@@ -5,7 +5,7 @@ from src.chatbot.conversation import ConversationManager
 from src.pdf_processing.pdf_extractor import extract_bill_data
 from src.agents.website_agent import execute_website_agent
 from src.utils.customer_database import fetch_customer_details
-from src.pdf_processing.bill_visualizer import visualize_bill_data, get_monthly_comparison_chart
+from src.pdf_processing.bill_visualizer import visualize_bill_data
 from src.pdf_processing.bill_display import display_bill_data
 from app.pages.bill_query import bill_query_page
 
@@ -14,7 +14,8 @@ import os
 import pandas as pd
 
 # Load environment variables from .env file
-load_dotenv()from app.pages.upload_bill import extract_bill_data
+load_dotenv()
+from app.pages.upload_bill import extract_bill_data
 
 
 
